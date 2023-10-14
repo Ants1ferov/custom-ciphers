@@ -1,6 +1,17 @@
 import re
 import random
 
+# region Строки локализации
+RES_MENU_SELECTION = ("Выберите действие для дальнейшего продолжения:\n\tШифрование - '1'\n\tДешифрование - "
+                      "'2'\n\tВыход из программы - '0'\n--> ")
+RES_CHOICE_OF_METHOD = ("\nВыберите метод:\n\tМетод ROTI с n сдвигом - '1'\n\tМетод ROTI с кодовым словом - "
+                        "'2'\n\tМетод квадрат Полибия - '3'\n\tМетод квадрат Полибия с кодовым словом - '4'\n\tМетод "
+                        "Виженера - '5'\n\tМетод Вернама - '6'\n\tВыход из меню - '0'\n--> ")
+RES_ROTI_N_SHIFT_WORD = ["Введите шифруемое слово: ", "Введите зашифрованное слово: "]
+RES_ROTI_N_SHIFT_SHIFT = ["Введите сдвиг: ", "Введите использованный сдвиг: "]
+RES_GLOBAL_WORDS_RESULT = ["Зашифрованное слово: ", "Дешифрованное слово: "]
+# endregion
+
 # region Глобальные переменные
 ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"  # Стандартный алфавит
 ALPHABET_VIGENERE = {
@@ -31,69 +42,59 @@ CHANGED_ALPHABET = {}  # Измененный алфавит
 
 def main():
     while True:
-        input_text = input("Выберите действие для дальнейшего продолжения.\nДля выхода из программы напишите '0'. "
-                           "Для шифрования напишите '1', для дешифрования '2': ")
+        menu_selection = input(RES_MENU_SELECTION)
 
-        if input_text == '0':
-            break
-        elif input_text == '1':
-            choice_of_method = input("Выберите метод шифрования:\n\tМетод ROTI с n сдвигом - '1'\n\tМетод ROTI с "
-                                     "кодовым словом - '2'\n\tМетод квадрат Полибия - '3'\n\tМетод квадрат Полибия с "
-                                     "кодовым словом - '4'\n\tМетод Виженера - '5'\n\tМетод Вернама - '6'\n\tВыход из "
-                                     "меню - '0'\n")
-
-            match choice_of_method.split():
-                case ['1']: roti_n_shift(input_text)
-                case ['2']: roti_code_word(input_text)
-                case ['3']: polybius_square(input_text)
-                case ['4']: polybius_square_code_word(input_text)
-                case ['5']: vigenere(input_text)
-                case ['6']: vernam(input_text)
-
-        elif input_text == '2':
-            choice_of_method = input("Выберите метод дешифрования:\n\tМетод ROTI с n сдвигом - '1'\n\tМетод ROTI с "
-                                     "кодовым словом - '2'\n\tМетод квадрат Полибия - '3'\n\tМетод квадрат Полибия с "
-                                     "кодовым словом - '4'\n\tМетод Виженера - '5'\n\tМетод Вернама - '6'\n\tВыход из "
-                                     "меню - '0'\n")
-
-            match choice_of_method.split():
-                case ['1']: roti_n_shift(input_text)
-                case ['2']: roti_code_word(input_text)
-                case ['3']: polybius_square(input_text)
-                case ['4']: polybius_square_code_word(input_text)
-                case ['5']: vigenere(input_text)
-                case ['6']: vernam(input_text)
-        else:
-            print("Введены некорректные данные!")
+        match menu_selection.split():
+            case ["0"]:
+                break
+            case ["1"] | ["2"]:
+                choice_of_method = input(RES_CHOICE_OF_METHOD)
+                match choice_of_method.split():
+                    case ['1']:
+                        roti_n_shift(menu_selection)
+                    case ['2']:
+                        roti_code_word(menu_selection)
+                    case ['3']:
+                        polybius_square(menu_selection)
+                    case ['4']:
+                        polybius_square_code_word(menu_selection)
+                    case ['5']:
+                        vigenere(menu_selection)
+                    case ['6']:
+                        vernam(menu_selection)
+            case _:
+                print("Введены некорректные символы!")
 
 
-# region Метод ROTI с n сдвигом
+# region Метод ROTI с n сдвигом (рефакторинг проведен)
 def roti_n_shift(flag):
-    encrypt_word = ""
-    decrypt_word = ""
-    if flag == "1":
-        word = input("Введите шифруемое слово: ").lower()
-        shift = int(input("Введите сдвиг: "))
-        for letter in word:
-            letter_index = ALPHABET.index(letter) + shift
+    result = ""
+
+    word = input(RES_ROTI_N_SHIFT_WORD[int(flag) - 1]).lower()
+    shift = int(input(RES_ROTI_N_SHIFT_SHIFT[int(flag) - 1]))
+
+    for letter in word:
+
+        letter_index = ALPHABET.index(letter)
+
+        if flag == "1":
+            letter_index += shift
             while letter_index > 32:
                 difference = letter_index - 33
                 letter_index = 0
                 letter_index += difference
-            encrypt_word += ALPHABET[letter_index]
-        print("Зашифрованное слово: ", encrypt_word)
-    elif flag == "2":
-        word = input("Введите зашифрованное слово: ").lower()
-        shift = int(input("Введите использованный сдвиг: "))
-        for letter in word:
-            letter_index = ALPHABET.index(letter) - shift
+
+        elif flag == "2":
+            letter_index -= shift
             while letter_index < 0:
                 difference = letter_index + 33
                 letter_index = 0
                 letter_index += difference
-            decrypt_word += ALPHABET[letter_index]
-        print(decrypt_word)
-# endregion+
+
+        result += ALPHABET[letter_index]
+
+    print(RES_GLOBAL_WORDS_RESULT[int(flag) - 1], result)
+# endregion
 
 
 # region ROTI с кодовым словом
@@ -137,6 +138,8 @@ def roti_code_word(flag):
                 letter_index += difference
             decrypt_word += local_alphabet[letter_index]
         print(decrypt_word)
+
+
 # endregion
 
 
@@ -173,6 +176,8 @@ def polybius_square(flag):
                 decrypt_word += get_key(index)
                 number = ''
         print(decrypt_word)
+
+
 # endregion
 
 
@@ -247,6 +252,8 @@ def polybius_square_code_word(flag):
                         decrypt_word += key
                 number = ''
         print(decrypt_word)
+
+
 # endregion
 
 
@@ -338,6 +345,8 @@ def vigenere(flag):
                 letter_indices[index] += difference
             decrypt_word += ALPHABET[letter_indices[index]]
         print(decrypt_word)
+
+
 # endregion
 
 
@@ -388,6 +397,8 @@ def vernam(flag):
             decrypt_word += ALPHABET[letter_index]
             code_crypt_index += 1
         print(decrypt_word)
+
+
 # endregion
 
 
