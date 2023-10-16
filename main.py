@@ -7,9 +7,10 @@ RES_MENU_SELECTION = ("Выберите действие для дальнейш
 RES_CHOICE_OF_METHOD = ("\nВыберите метод:\n\tМетод ROTI с n сдвигом - '1'\n\tМетод ROTI с кодовым словом - "
                         "'2'\n\tМетод квадрат Полибия - '3'\n\tМетод квадрат Полибия с кодовым словом - '4'\n\tМетод "
                         "Виженера - '5'\n\tМетод Вернама - '6'\n\tВыход из меню - '0'\n--> ")
-RES_ROTI_N_SHIFT_WORD = ["Введите шифруемое слово: ", "Введите зашифрованное слово: "]
-RES_ROTI_N_SHIFT_SHIFT = ["Введите сдвиг: ", "Введите использованный сдвиг: "]
+RES_INPUT_WORD = ["Введите шифруемое слово: ", "Введите зашифрованное слово: "]
+RES_INPUT_SHIFT = ["Введите сдвиг: ", "Введите использованный сдвиг: "]
 RES_GLOBAL_WORDS_RESULT = ["Зашифрованное слово: ", "Дешифрованное слово: "]
+RES_INPUT_UNIQUE_CODE_WORD = "Введите кодовое слово, состоящее из уникальных букв: "
 # endregion
 
 # region Глобальные переменные
@@ -35,11 +36,10 @@ ALPHABET_POLYBIUS = {
 
 STANDARD_SHIFT = 3
 CHANGED_ALPHABET = {}  # Измененный алфавит
-
-
 # endregion
 
 
+# region Точка входа
 def main():
     while True:
         menu_selection = input(RES_MENU_SELECTION)
@@ -64,14 +64,15 @@ def main():
                         vernam(menu_selection)
             case _:
                 print("Введены некорректные символы!")
+# endregion
 
 
 # region Метод ROTI с n сдвигом (рефакторинг проведен)
 def roti_n_shift(flag):
     result = ""
 
-    word = input(RES_ROTI_N_SHIFT_WORD[int(flag) - 1]).lower()
-    shift = int(input(RES_ROTI_N_SHIFT_SHIFT[int(flag) - 1]))
+    word = input(RES_INPUT_WORD[int(flag) - 1]).lower()
+    shift = int(input(RES_INPUT_SHIFT[int(flag) - 1]))
 
     for letter in word:
 
@@ -97,94 +98,73 @@ def roti_n_shift(flag):
 # endregion
 
 
-# region ROTI с кодовым словом
+# region ROTI с кодовым словом (рефакторинг проведен)
 def roti_code_word(flag):
-    encrypt_word = ""
-    decrypt_word = ""
-    if flag == '1':
-        word = input("Введите слово: ").lower()
-        code_word = input("Введите кодовое слово, состоящее из уникальных букв: ").lower()
-        for letter in code_word:
-            if code_word.count(letter) > 1:
-                print("Кодовое слово не содержит уникальных букв!")
-                break
+    result = ""
 
-        local_alphabet = change_alphabet(code_word)
+    word = input(RES_INPUT_WORD[int(flag) - 1]).lower()
+    code_word = input(RES_INPUT_UNIQUE_CODE_WORD).lower()
 
-        for letter in word:
-            letter_index = local_alphabet.index(letter) + STANDARD_SHIFT
-            while letter_index > 32:
-                difference = letter_index - 33
-                letter_index = 0
-                letter_index += difference
-            encrypt_word += local_alphabet[letter_index]
+    for letter in code_word:
+        if code_word.count(letter) > 1:
+            print("Кодовое слово не содержит уникальных букв!")
+            break
 
-        print(encrypt_word)
-    elif flag == '2':
-        word = input("Введите зашифрованное слово: ").lower()
-        code_word = input("Введите кодовое слово, состоящее из уникальных букв: ").lower()
-        for letter in code_word:
-            if code_word.count(letter) > 1:
-                print("Кодовое слово не содержит уникальных букв!")
-                break
-
-        local_alphabet = change_alphabet(code_word)
-
-        for letter in word:
-            letter_index = local_alphabet.index(letter) - STANDARD_SHIFT
-            while letter_index < 0:
-                difference = letter_index + 33
-                letter_index = 0
-                letter_index += difference
-            decrypt_word += local_alphabet[letter_index]
-        print(decrypt_word)
-
-
-# endregion
-
-
-def change_alphabet(code_word):
     local_alphabet = ALPHABET
     for letter in code_word:
         local_alphabet = local_alphabet.replace(letter, '')
     local_alphabet = code_word + local_alphabet
-    return local_alphabet
+
+    for letter in word:
+
+        letter_index = local_alphabet.index(letter)
+
+        if flag == '1':
+            letter_index += STANDARD_SHIFT
+            while letter_index > 32:
+                difference = letter_index - 33
+                letter_index = 0
+                letter_index += difference
+
+        elif flag == '2':
+            letter_index -= STANDARD_SHIFT
+            while letter_index < 0:
+                difference = letter_index + 33
+                letter_index = 0
+                letter_index += difference
+
+        result += local_alphabet[letter_index]
+
+        print(RES_GLOBAL_WORDS_RESULT[int(flag) - 1], result)
+# endregion
 
 
 # region Квадрат Полибия
 def polybius_square(flag):
-    encrypt_word = ""
-    decrypt_word = ""
-    if flag == '1':
-        word = input("Введите слово: ").lower()
-        shift = int(input("Введите сдвиг: "))
-        for letter in word:
+    result = ""
+    number = ""
+
+    word = input(RES_INPUT_WORD).lower()
+    shift = int(input(RES_INPUT_SHIFT))
+
+    for letter in word:
+        if flag == '1':
             index = ALPHABET_POLYBIUS[letter]
             index = shift_index(index, shift, True)
-            encrypt_word += str(index)
-        print(encrypt_word)
+            result += str(index)
 
-    elif flag == '2':
-        word = input("Введите шифр: ").lower()
-        shift = int(input("Введите сдвиг: "))
-        number = ''
-        for letter in word:
+        elif flag == '2':
             number += letter
             if len(number) == 2:
                 index = int(number)
                 index = shift_index(index, shift, False)
-                decrypt_word += get_key(index)
+                for key, value in ALPHABET_POLYBIUS.items():
+                    if index == value:
+                        result += key
                 number = ''
-        print(decrypt_word)
 
-
+        print(RES_GLOBAL_WORDS_RESULT[int(flag) - 1], result)
 # endregion
-
-
-def get_key(index):
-    for key, value in ALPHABET_POLYBIUS.items():
-        if index == value:
-            return key
 
 
 def shift_index(index, shift, is_encrypt):
